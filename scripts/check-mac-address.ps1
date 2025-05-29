@@ -9,9 +9,9 @@
 .EXAMPLE
 	PS> ./check-mac-address 11:22:33:44:55:66
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 param([string]$MAC = "")

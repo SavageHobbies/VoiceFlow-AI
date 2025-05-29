@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./calculate-XYZ "one plus two"
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 param([string]$Part1 = "", [string]$Part2 = "", [string]$Part3 = "", [string]$Part4 = "", [string]$Part5 = "", [string]$Part6 = "", [string]$Part7 = "")

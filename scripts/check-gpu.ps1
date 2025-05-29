@@ -6,9 +6,9 @@
 .EXAMPLE
         PS> ./check-gpu
 .LINK
-        https://github.com/fleschutz/talk2windows
+        https://github.com/savagehobbies/winassistai
 .NOTES
-        Author: Markus Fleschutz | License: CC0
+        Author: Sean Sandoval | License: CC0
 #>
 
 function Bytes2String { param([int64]$Bytes)

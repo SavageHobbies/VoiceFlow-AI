@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./are-you-with-me
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 $reply = "Yes.", "Sure.", "Yes, sure.", "Always." | Get-Random

@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./check-my-balance
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 & "$PSScriptRoot/say.ps1" "OK, what's your account number?"

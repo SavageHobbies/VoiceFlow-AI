@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./check-health
 .NOTES
-	Author: Markus Fleschutz · License: CC0
+	Author: Sean Sandoval · License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 & "$PSScriptRoot/check-uptime.ps1"

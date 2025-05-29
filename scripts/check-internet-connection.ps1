@@ -8,9 +8,9 @@
 .EXAMPLE
 	PS> ./check-internet-connection
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 param([string]$hosts = "google.com")

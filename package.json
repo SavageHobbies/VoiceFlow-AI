@@ -1,0 +1,63 @@
+{
+  "name": "win_assist_ai",
+  "version": "2.0.0",
+  "description": "Voice-Controlled Windows Assistant - Cross-Platform Launcher with ElevenLabs AI TTS",
+  "main": "win_assist_ai.js",
+  "scripts": {
+    "start": "node win_assist_ai.js",
+    "test-voice": "node win_assist_ai.js --test-voice",
+    "test-elevenlabs": "node win_assist_ai.js --test-elevenlabs",
+    "list-commands": "node win_assist_ai.js --list-commands",
+    "list-voices": "node win_assist_ai.js --list-voices",
+    "with-serenade": "node win_assist_ai.js --with-serenade",
+    "no-serenade": "node win_assist_ai.js --no-serenade",
+    "start-full": "node win_assist_ai.js --start-full",
+    "install-serenade": "node win_assist_ai.js --install-serenade",
+    "help": "node win_assist_ai.js --help"
+  },
+  "bin": {
+    "win_assist_ai": "./win_assist_ai.js"
+  },
+  "keywords": [
+    "voice-control",
+    "windows-assistant",
+    "speech-recognition",
+    "automation",
+    "serenade",
+    "powershell",
+    "cross-platform",
+    "elevenlabs",
+    "text-to-speech",
+    "ai-voice"
+  ],
+  "author": "WinAssistAI Team",
+  "license": "CC0-1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fleschutz/win_assist_ai.git"
+  },
+  "homepage": "https://github.com/fleschutz/win_assist_ai",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "os": [
+    "win32",
+    "linux",
+    "darwin"
+  ],
+  "preferGlobal": false,
+  "dependencies": {
+    "axios": "^1.6.0",
+    "node-fetch": "^3.3.2"
+  },
+  "files": [
+    "win_assist_ai.js",
+    "win_assist_ai.sh",
+    "win_assist_ai.py",
+    "WinAssistAI.bat",
+    "scripts/",
+    "config/",
+    "README.md",
+    "INSTALLATION.md"
+  ]
+}

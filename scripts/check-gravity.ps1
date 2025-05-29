@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./check-gravity
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 .NOTES
-	Author: Markus Fleschutz | License: CC0
+	Author: Sean Sandoval | License: CC0
 #>
 
 & "$PSScriptRoot/say.ps1" "Earth gravity is 9.8 meter per second squared."

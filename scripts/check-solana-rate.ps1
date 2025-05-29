@@ -8,7 +8,7 @@
 .NOTES
 	Author: Markus Fleschutz / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/fleschutz/winassistai
 #>
 
 try {

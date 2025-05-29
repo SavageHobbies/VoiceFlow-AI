@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./close-firefox
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 & "$PSScriptRoot/close-program.ps1" "Mozilla Firefox" "firefox" "firefox"

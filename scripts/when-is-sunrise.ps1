@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./when-is-sunrise
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 function GetTimeSpan { param([TimeSpan]$Delta)

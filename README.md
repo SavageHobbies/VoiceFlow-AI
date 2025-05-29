@@ -1,132 +1,496 @@
-Talk2Windows
-============
-This repo lets you control your *Windows*® desktop by voice commands. Using keyboard, mouse, and also your voice is intuitive, increases your productivity, and is really awesome. 
+# WinAssistAI - Voice-Controlled Windows Assistant
 
-Required is *Windows*® 10 or 11, a headset, and the free *Serenade* voice recognition application.
+A comprehensive PowerShell-based voice assistant system for Windows with **Serenade voice control integration** and **ElevenLabs AI voice synthesis** that provides hands-free voice commands, high-quality text-to-speech responses, and extensive system control capabilities. Developed by Sean Sandoval.
 
-⚙️ Setup
----------
-1. **Download and install** the free *Serenade* app from [https://serenade.ai](https://serenade.ai/download). During installation choose *no plugin* and *no programming language*, then go to *Settings &gt; Server* and choose the 'Local' endpoint (good for privacy and speed). Close the application when finished.
-2. **Download and unzip** this repo from [https://github.com/fleschutz/talk2windows/archive/main.zip](https://github.com/fleschutz/talk2windows/archive/main.zip).
-3. **Open 'Windows PowerShell (Administrator)'** and execute: `Set-ExecutionPolicy RemoteSigned` to allow the execution of PowerShell scripts.
-4. **Right-click 'setup.ps1'** in the *talk2windows* folder and select 'Execute with PowerShell'. It exports all voice commands with your personal wake word to *Serenade*. In the following the wake word **Windows** is used.
+## 🚀 Quick Start
 
-🎧 Usage
----------
-1. **Put your headset on** and check audio and microphone.
-2. **Launch Serenade** and click the slider to switch from *Paused* to *Listening* mode (raise the mic audio level in case a *'low voice'* is shown).
-3. **Say:** *"*Windows, open calculator*"* with a calm voice into the mic. This voice command executes the PowerShell script `open-calculator.ps1` which launches the calculator app.
+### Universal Cross-Platform Launch (Recommended)
 
-Most voice commands follow the generic scheme "*&lt;wake word&gt;, &lt;verb&gt; &lt;subject&gt;*" such as: *"Windows, open calculator"*. Supported are the following voice commands:
+**Works from ANY terminal** - Git Bash, Command Prompt, PowerShell, WSL, Linux, macOS:
 
-👋 *"Windows, &lt;greeting&gt;"*
----------------------------
-Say hello to *Windows*® by replacing &lt;greeting&gt; with: `good afternoon`, `good evening`, `good morning`, `good night`, `hello`, `hey`, `hi`, `howdy`, `morning`, or `nice to meet you`.
+```bash
+# Node.js launcher (most reliable)
+node winassistai.js --start-full
 
-🔧 *"Windows, install &lt;app&gt;"*
------------------------------
-Install a Microsoft Store application by replacing &lt;app&gt; with: `7-Zip`, `CrystalDiskInfo`, `CrystalDiskMark`, `Discord`, `Disney+`, `Edge`, `Firefox`, `Google Chrome`, `IrfanView`, `Mp3tag`, `Netflix`, `Opera Browser`, `Opera GX`, `One Calendar`, `Quick Share`, `Rufus`, `Spotify`, `Sticky Notes`, `TikTok`, `Twitter`, `Visual Studio Code`, `VLC`, `Windows Terminal`, or `WhatsApp`. To uninstall it simply say: **"Windows, uninstall &lt;app&gt;"**.
+# Python launcher (universal compatibility)
+python winassistai.py --start-full
 
- 💻 *"Windows, open &lt;app&gt;"*
-----------------------------
-Launch an installed application by replacing &lt;app&gt; with: `3D-Viewer`, `7-Zip`, `Calculator`,  `Character Map`, `CrystalDiskInfo`, `CrystalDiskMark`, `Discord`, `Disney+`, `Edge`, `Firefox`, `Git Extensions`, `Google Chrome`, `Magnifier`, `Microsoft Paint`, `Microsoft Store`, `Mp3tag`, `Netflix`, `Notepad`, `OBS Studio`, `One Calendar`, `One Note`, `Outlook`, `Quick Share`, `Remote Desktop`, `Screen Clip`, `Spotify`, `Sticky Notes`, `System Information`, `Thunderbird`, `Visual Studio`, `VLC`, `voice recorder`, `Windows Terminal`, or `WhatsApp`. To close it simply say: **"Windows, close &lt;app&gt;"**.
+# Bash launcher (Unix-like systems)
+./winassistai.sh --start-full
 
-🌐 *"Windows, open &lt;name&gt; website"*
-------------------------------------
-Launch the default Web browser (or a new tab) with the given website. Replace &lt;name&gt; with: `Amazon`, `Apple`, `Baidu`, `BBC`, `Bing`, `BitBucket`, `BitBucket status`, `CDC`, `CIA`, `CNN`, `Discord`, `DistroWatch`, `Docker`, `Docker status`, `Dropbox`, `eBay`, `Facebook`, `FBI`, `FlightRadar`, `Flipboard`, `FourSquare`, `FRITZ!Box`, `FRITZ!Repeater`, `GitHub`, `GliderTracker`, `HolidayCheck`, `HRworks`, `Instagram`, `IPFS`, `Microsoft`, `NASA`, `NBC`, `Netflix`, `Notepad`, `Outdoor Active`, `PayPal`, `Pinterest`, `Pixabay`, `Plex`, `Serenade`, `Slashdot`, `Snap Store`, `Space Weather`, `SpaceX`, `Spotify`, `Starbucks`, `Tesla`, `TikTok`, `Toggl`, `Topo Map`, `Twitter`,  `UFA`, `Unsplash`, `Walmart`, `WhatsApp`, `White House`, `Windy`, `Wikipedia`, `Wolfram Alpha`, `World News`, `Yahoo`, `YouTube`, or `Zoom`. When finished say: **"Windows, close tab"**.
+# NPM (if you prefer npm)
+npm start -- --start-full
+```
 
-🔦 *"Windows, check &lt;item&gt;"*
------------------------------
-Let the computer check something by replacing &lt;item&gt; with: `audio`, `Bitcoin rate`, `CPU temperature`, `dawn`, `day`, `DNS`, `drives`, `dusk`, `Earth` (fun), `Ether rate`, `for crash dumps`, `my downloads`, `for rain`, `for snow`, `Git version`, `headlines`, `internet connection`, `internet speed`, `moon phase`, `month`, `New Year`, `operating system`, `Outlook`, `ping latency`, `recycle bin`, `Santa`, `swap space`, `temperature`, `Tether rate`, `time zone`, `up-time`, `VPN`, `weather`, `week`, `the wind`, `year`, or `zenith`.
+### Platform-Specific Launch Methods
 
-❔ *"Windows, &lt;shortcut&gt;"*
--------------------------
-Press a keyboard shortcut to navigate in a browser window. Replace &lt;shortcut&gt; with: `close tab`, `last tab`, `next page`, `next tab`, `previous page`, `previous tab`, `open new tab`, `open new window`, `reload page`, `scroll down`, `scroll to bottom`, `scroll to top`, `scroll up`, `tab 1`, `tab 2`, `tab 3`, `tab 4`, `tab 5`, `tab 6`, `zoom in`, or `zoom out`.
+#### Git Bash (MINGW64) Users 🎯
+```bash
+# Best solution for Git Bash
+node winassistai.js --start-full
 
-📝 *"Windows, insert &lt;char&gt; sign"*
----------------------------------------
-Insert the given character at the current text cursor position. Just replace &lt;char&gt; with: `at`, `backslash`, `comma`, `copyright`, `Dollar`, `Euro`, `hashtag`, `minus`, `number`, `percent`, `pipe`, `plus`, `Pound`, `slash`, `trademark`, `underscore`, or `Yen`.
+# Alternative for Git Bash
+python winassistai.py --start-full
+```
 
-📝 *"Windows, insert &lt;text&gt;"*
----------------------------------
-Insert text at the current text cursor position. Replace &lt;text&gt; with: `bomb`, `bye bye`, `call?`, `checkmark`, `clapping`, `date`, `good-bye`, `good morning`, `heart`, `OK`, `shrugging`, `smiley`, or `thumbs up`.
+#### Windows Users
+```cmd
+REM Native Windows batch file
+WinAssistAI.bat
 
-📋 *"Windows, open Google &lt;service&gt;"*
--------------------------------------
-Launch the default Web browser (or a new tab) showing the given Google® service. Replace &lt;service&gt; with: `Alerts`, `Blogger`, `Books`, `Calendar`, `Charts`, `Contacts`, `Docs`, `Drawings`, `Earth`, `Flights`, `Gemini`, `Keep`, `Mail`, `Maps`, `Mars`, `News`, `Notes`, `Photos`, `Play`, `Scholar`, `Search`, `Sheets`, `Shopping list`, `Sky`, `Slides`, `Stadia`, `Tasks`, or `Translate`. When finished say: **"Windows, close tab"**.
+REM Or use universal launchers
+node winassistai.js --start-full
+```
 
-📖 *"Windows, open &lt;name&gt; magazine"*
--------------------------------------
-Launches the default Web browser (or a new tab) showing the given magazine website. Replace &lt;name&gt; with: `Cosmopolitan`, `Focus`, `Golf`, `GQ`, `Health`, `National Geographic`, `People`, `RollingStone`, `Scientific American`, `Spiegel`, `Sports Illustrated`, `SZ`, `The Oprah`, `Time`, `Vanity Fair`, `Vogue`, or `Wired`. When finished say: **"Windows, close tab"**.
+#### PowerShell Users
+```powershell
+# Direct PowerShell execution
+.\scripts\start-with-serenade.ps1
 
-📓 *"Windows, open &lt;name&gt; manual"*
------------------------------------
-Launches the default Web browser (or a new tab) with the given manual. Replace &lt;name&gt; with: `Ant`, `Apple`, `Audacity`, `Azure`, `Bash`, `Blender`, `Chrome`, `Edge`, `Firefox`, `GCC`, `Git`, `Jenkins`, `MSBuild`, `OBS Studio`, `PowerShell`, `Serenade`, `SystemRescue`, `Toyota`, `Vim`, `Voice` *(yes, this page!)*, `Volkswagen`, or `Windows`. When finished say: **"Windows, close tab"**.
+# Or universal launchers
+node winassistai.js --start-full
+```
 
-🏦 *"Windows, show &lt;name&gt; city"*
----------------------------------
-Launches the default Web browser (or a new tab) showing the given city in *Google Maps*. Replace &lt;name&gt; with the name of the city. When finished say: **"Windows, close tab"**.
+### Voice Commands (After Launch)
+- Say: "hello computer"
+- Say: "check weather"
+- Say: "open calculator"
+- Say: "take screenshot"
 
- 📈 *"Windows, show &lt;name&gt; rate"*
-----------------------------------
-Launches the default Web browser (or a new tab) showing the given exchange rate. Replace &lt;name&gt; with: `Bitcoin`, `Cardano`, `Ether`, `Euro`, `NFT collections`, `Solana`, `Tether`, or `US dollar`. When finished say: **"Windows, close tab"**.
+### Quick Test Commands
+```bash
+# Test voice functionality
+node winassistai.js --test-voice
 
-🎵 *"Windows, play &lt;genre&gt; music"*
------------------------------------
-Launches the default Web browser (or a new tab) and plays a music genre. Replace &lt;genre&gt; with: `70s`, `80s`, `90s`, `Alternative Rock`, `Blues`, `Chillout`, `Christmas`, `Classical`, `Country`, `Dance`, `Folk`, `Hip Hop`, `House`, `Indie`, `Jazz`, `Metal`, `Pop`,`Reggae`, `Relax`, `RnB`, `Rock`, or `Workout`. When finished say: **"Windows, close tab"**.
+# Setup ElevenLabs AI voice (recommended)
+node winassistai.js --setup-elevenlabs
 
-🔈 *"Windows, play &lt;name&gt; sound"*
----------------------------------
-Starts the playback of the given sound, just replace &lt;name&gt; with: `alarm`, `bee`, `beep`, `Big Ben`, `car`, `cat`, `cow`, `dog`, `donkey`, `elephant`, `elk`, `frog`, `goat`, `gorilla`, `horse`, `lion`, `parrot`, `pig`, `rattlesnake`, `vulture`, or `wolf`.
+# Test ElevenLabs AI voice system
+node winassistai.js --test-elevenlabs
 
-🎮 *"Windows, let's play &lt;game&gt;"*
----------------------------------
-Launches the default Web browser (or a new tab) and lets you play a free browser game. Replace &lt;game&gt; with: `2048`, `Agar`, `Catan Universe`, `Chess`, `Cube`, `ISS Docking Simulator`, `Pacman`, `Santa Tracker`, `Slither`, `Tetris`, `TicTacToe`, `Tower`, `Vanis`, `War Brokers`, or `Wordle`. When finished say: **"Windows, close tab"**.
+# List available AI voices
+node winassistai.js --list-voices
 
-🎨 *"Windows, next &lt;category&gt; wallpaper"*
-------------------------------------------
-Replaces the desktop background by a random photo from Unsplash.com. Replace &lt;category&gt; with: `Animal`, `Beach`, `Car`, `Christmas`, `City`, `Desert`, `Fantasy`, `Military`, `Movie`, `Music`, `Nature`, `Plane`, `Random`, `Space`, `Sports`, or `Winter`.
+# List all available commands
+node winassistai.js --list-commands
 
-⏰ *"Windows, remind me &lt;time&gt;"*
----------------------------------
-Sets a reminder, just replace &lt;time&gt; with: `at # AM`, `at # PM`, `at midnight`, `at noon`, `at sunrise`, `at sunset`, `at tea time`, `in # minutes`, or `in # hours`.
+# Show help for all options
+node winassistai.js --help
+```
 
-💽 *"Windows, open &lt;letter&gt; drive"*
-------------------------------------
-Launches the *File Explorer* showing the given drive. Replace &lt;letter&gt; with: `C:`, `D:`, `E:`, `F:`, `G:`, `H:` or `M:`. When finished say: **"Windows, close file explorer"**.
+**📋 Having terminal issues?** See our comprehensive [Terminal Compatibility Guide](TERMINAL_GUIDE.md) for detailed instructions for every terminal type.
 
-📂 *"Windows, open &lt;name&gt; folder"*
------------------------------------
-Launches the File Explorer with the given folder. Replace &lt;name&gt; with: `apps`, `applications`, `autostart`, `crash dumps`, `desktop`, `documents`, `downloads`, `Dropbox`, `home`, `music`, `OneDrive`, `pictures`, `recycle bin`, `repos`, `SSH`, `Talk2Windows`, `temporary`, `videos`, or `Windows`. When finished say: **"Windows, close file explorer"**.
+## 📁 System Architecture
 
-⚙️ *"Windows, open &lt;category&gt; settings"*
--------------------------------------
-Open the system settings with the given category - just replace &lt;category&gt; with: `activation`, `apps`, `background`, `backup`, `bluetooth`, `color`, `date`, `default apps`, `developer`, `display`, `ethernet`, `lockscreen`, `maps`, `personal`, `printer`, `proxy`, `recovery`, `speech`, `start`, `system`, `taskbar`, `themes`, `time`, `update`, `USB`, `VPN`, `Wifi`, or `Windows`. When finished say: **"Windows, close system settings"**.
+### Core Components
 
-❔ *"Windows, list &lt;table&gt;"*
----------------------------
-Shows the given table, just replace &lt;table&gt; with: `bluetooth devices`, `city weather`, `earthquakes`, `emojis`, `environment variables`, `headlines`, `installed apps`, `installed software`, `installed voices`, `network adapters`, `printers`, `running processes`, `services`, `system info`, `tasks`, `time zones`, or `user groups`.
+- **[`say.ps1`](scripts/say.ps1)** - Enhanced text-to-speech engine with ElevenLabs AI integration
+- **[`say-enhanced.ps1`](scripts/say-enhanced.ps1)** - Advanced TTS system with ElevenLabs AI voice synthesis
+- **[`winassistai.ps1`](scripts/winassistai.ps1)** - Main startup and help system with Serenade integration
+- **[`serenade-bridge.ps1`](scripts/serenade-bridge.ps1)** - Voice control bridge for Serenade integration
+- **[`start-with-serenade.ps1`](scripts/start-with-serenade.ps1)** - Complete startup with voice control
+- **[`open-browser.ps1`](scripts/open-browser.ps1)** - Web browser launcher utility
 
-🔧 *"Windows, &lt;action&gt; computer"*
----------------------------------
-Performs the given action to the computer, replace &lt;action&gt; with: `hibernate`, `lock`, `reboot`, `shut down`, or `suspend`.
+### ElevenLabs AI Voice Components
 
-❔ *"Windows, &lt;question&gt;"*
---------------------------
-Asks Windows a question, just replace &lt;question&gt; with: `are you a computer?`, `are you here?`, `are you listening?`, `are you ready?`, `are you there?`, `are you with me?`, `can you talk?`, `do you listen?`, `how are you?`, `how do you do?`, `how much daylight today?`, `how old are you?`, `what about ...?`, `what is [abbreviation]`, `what's the date today?`, `what's the temperature?`, `what's the time?`, `what time is it?`, `when is Christmas?`, `when is easter?`, `when is midnight?`, `when is noon?`, `when is President's day?`, `when is sunrise?`, `when is sunset?`, `when is tea time?`, `where am I?`, `where are you?`, `where is the ISS`, `who is your father?`, or `you can talk?`.
+- **[`setup-elevenlabs.ps1`](scripts/setup-elevenlabs.ps1)** - Interactive ElevenLabs AI voice setup wizard
+- **[`test-elevenlabs.ps1`](scripts/test-elevenlabs.ps1)** - ElevenLabs voice testing and management
+- **[`config/elevenlabs.json`](config/elevenlabs.json)** - ElevenLabs configuration and voice settings
 
-💭 *"Windows, &lt;command&gt;"*
--------------------------
-Lets Windows execute a command, replace &lt;command&gt; with: `calculate [expression]`, `connect VPN`, `count down from [number]`, `empty recycle bin`, `enable god mode`, `I need help`, `locate my phone`, `minimize all windows`, `ping [host]`, `repeat last reply`, `roll a dice`, `save screenshot`, `set volume to [number] percent`, `shut up`, `sorry`, `spell [text]`, `tell me a joke`, `tell me a quote`, `thank you`, `thanks`, `translate [text] to [language]`, `turn volume off`, `turn volume on`, `turn volume up`, `turn volume fully up`, `turn volume down`, `update repository`, or `wakeup [hostname]`.
+### Serenade Integration Components
 
-🖖 *"Windows, &lt;farewell&gt;"*
----------------------------
-Say good-bye to your computer by replacing &lt;farewell&gt; with: `bye`, `bye-bye`, `ciao`, `good-bye`, `I'll be back`, `see you`, or `see you later`.
+- **[`check-serenade.ps1`](scripts/check-serenade.ps1)** - Detect and verify Serenade installation
+- **[`open-serenade.ps1`](scripts/open-serenade.ps1)** - Launch Serenade voice control
+- **[`install-serenade.ps1`](scripts/install-serenade.ps1)** - Automatic Serenade installation
+- **[`close-serenade.ps1`](scripts/close-serenade.ps1)** - Close Serenade application
 
-📧 Feedback
-------------
-Send your email feedback to: markus.fleschutz [at] gmail.com
+### Script Categories
 
-🤝 License, Copyright, and Trademarks
---------------------------------------
-This open source project is licensed under the CC0 license. All trademarks are the property of their respective owners.
+| Category | Count | Description | Examples |
+|----------|-------|-------------|----------|
+| 🔍 **check-*** | 30+ | System information & diagnostics | `check-weather`, `check-uptime`, `check-ram` |
+| ❌ **close-*** | 40+ | Close applications & windows | `close-calculator`, `close-chrome`, `close-spotify` |
+| 🚀 **open-*** | 100+ | Launch apps, websites & folders | `open-calculator`, `open-youtube`, `open-terminal` |
+| 📦 **install-*** | 25+ | Install software packages | `install-discord`, `install-spotify`, `install-zoom` |
+| 🎵 **play-*** | 20+ | Music & entertainment | `play-rock-music`, `play-jazz-music` |
+| 🎮 **lets-play-*** | 8+ | Games & interactive content | `lets-play-tic-tac-toe`, `lets-play-wordle` |
+| 💬 **Conversational** | 50+ | Greetings & responses | `hello`, `thank-you`, `good-morning` |
+| ⚙️ **Utilities** | 30+ | System actions & tools | `take-screenshot`, `set-timer`, `empty-recycle-bin` |
+
+## 🎙️ ElevenLabs AI Voice Features
+
+### High-Quality AI Voice Synthesis
+- **Natural-sounding voices** - Much more realistic than traditional TTS
+- **Multiple voice personalities** - Choose from dozens of AI voices
+- **Automatic fallback** - Seamless fallback to Windows TTS if needed
+- **Voice customization** - Adjust stability, similarity, and style settings
+- **Audio caching** - Improved performance with local audio cache
+
+### Quick Setup
+```powershell
+# Interactive setup wizard
+.\scripts\setup-elevenlabs.ps1
+
+# Test your configuration
+.\scripts\test-elevenlabs.ps1 -Test
+
+# List available voices
+.\scripts\test-elevenlabs.ps1 -ListVoices
+```
+
+### Voice Management
+```powershell
+# Test specific voice
+.\scripts\test-elevenlabs.ps1 -Voice "Rachel"
+
+# Check configuration status
+.\scripts\test-elevenlabs.ps1 -Status
+
+# Reset configuration
+.\scripts\test-elevenlabs.ps1 -Reset
+```
+
+📖 **Detailed Setup Guide**: See [ELEVENLABS_SETUP.md](ELEVENLABS_SETUP.md) for complete installation and configuration instructions.
+
+##  Command Examples
+
+### System Information
+```powershell
+.\scripts\check-weather.ps1          # Get current weather with TTS
+.\scripts\check-uptime.ps1           # System uptime information
+.\scripts\check-ram.ps1              # Memory usage status
+.\scripts\check-internet-speed.ps1   # Network speed test
+```
+
+### Application Control
+```powershell
+.\scripts\open-calculator.ps1        # Launch calculator
+.\scripts\close-calculator.ps1       # Close calculator
+.\scripts\open-spotify.ps1           # Launch Spotify
+.\scripts\install-discord.ps1        # Install Discord via winget
+```
+
+### Entertainment
+```powershell
+.\scripts\play-rock-music.ps1        # Stream rock music
+.\scripts\lets-play-wordle.ps1       # Open Wordle game
+.\scripts\show-weather-radar.ps1     # Display weather radar
+```
+
+### Conversational
+```powershell
+.\scripts\hello.ps1                  # Friendly greeting
+.\scripts\how-are-you.ps1           # Casual conversation
+.\scripts\thank-you.ps1             # Polite response
+.\scripts\good-night.ps1            # Evening farewell
+```
+
+## 🎤 Voice Control Features
+
+### Serenade Integration
+- **Hands-Free Control**: Use voice commands to control your computer
+- **Automatic Launch**: Serenade starts automatically with Talk2Windows
+- **Seamless Bridge**: Voice commands directly execute PowerShell scripts
+- **792+ Voice Commands**: All WinAssistAI scripts accessible via voice
+
+### Voice Commands Examples
+```
+"hello computer"          → .\scripts\hello.ps1
+"check weather"           → .\scripts\check-weather.ps1
+"open calculator"         → .\scripts\open-calculator.ps1
+"take screenshot"         → .\scripts\take-screenshot.ps1
+"thank you computer"      → .\scripts\thank-you.ps1
+"empty recycle bin"       → .\scripts\empty-recycle-bin.ps1
+"win assist"              → .\scripts\win_assist_ai.ps1
+```
+
+## 🔊 Text-to-Speech Features
+
+All scripts include built-in voice responses using Windows SAPI.SPVoice:
+
+- **Automatic TTS**: Every script provides spoken feedback
+- **English Voice**: Automatically selects English voice if available
+- **Error Handling**: Speaks error messages for troubleshooting
+- **Response Variety**: Many scripts use random response selection
+- **Serenade Integration**: Voice responses complement voice input
+
+### TTS Implementation
+```powershell
+# Basic usage
+& "$PSScriptRoot/say.ps1" "Hello there!"
+
+# Error handling with TTS
+try {
+    # Script logic here
+    & "$PSScriptRoot/say.ps1" "Operation completed successfully."
+} catch {
+    & "$PSScriptRoot/say.ps1" "Sorry: $($Error[0])"
+}
+```
+
+## 🛠️ System Requirements
+
+### Core Requirements
+- **OS**: Windows 10/11
+- **PowerShell**: 5.1 or later
+- **TTS Engine**: Windows SAPI.SPVoice (built-in)
+- **Internet**: Required for web-based features and Serenade download
+- **Permissions**: Some scripts require administrator rights
+
+### For Voice Control (Optional but Recommended)
+- **Serenade**: Voice control system (auto-installed by WinAssistAI)
+- **Microphone**: For voice input
+- **Audio Output**: For voice feedback
+
+## 📋 Installation & Setup
+
+### Universal Cross-Platform Setup (Recommended)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/SeanSandoval/win_assist_ai.git
+   cd win_assist_ai
+   ```
+
+2. **Choose your launcher** (pick what you have installed):
+
+   #### Option A: Node.js (Recommended)
+   ```bash
+   # Requires Node.js 12+
+   node winassistai.js --start-full
+   ```
+
+   #### Option B: Python
+   ```bash
+   # Requires Python 3.6+
+   python winassistai.py --start-full
+   # or python3 winassistai.py --start-full
+   ```
+
+   #### Option C: Bash Shell
+   ```bash
+   # Make executable first (Unix-like systems)
+   chmod +x winassistai.sh
+   ./winassistai.sh --start-full
+   ```
+
+   #### Option D: NPM
+   ```bash
+   npm start -- --start-full
+   ```
+
+### Windows-Specific Setup
+
+1. **Clone the repository** (same as above)
+
+2. **Set PowerShell execution policy (if needed):**
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+3. **Launch options:**
+   ```cmd
+   REM Native Windows batch
+   WinAssistAI.bat
+   
+   REM PowerShell direct
+   .\scripts\start-with-serenade.ps1 -AutoInstall
+   
+   REM Universal launchers
+   node winassistai.js --start-full
+   python winassistai.py --start-full
+   ```
+
+### Git Bash Users (MINGW64)
+
+**No PowerShell execution policy needed!** Use the universal launchers:
+
+```bash
+# Best for Git Bash
+node winassistai.js --start-full
+
+# Alternative for Git Bash
+python winassistai.py --start-full
+
+# Direct PowerShell call (fallback)
+powershell.exe -ExecutionPolicy Bypass -File "./scripts/start-with-serenade.ps1"
+```
+
+### Launch Options for All Platforms
+
+```bash
+# Full startup with Serenade (recommended)
+node winassistai.js --start-full
+
+# Test voice functionality
+node winassistai.js --test-voice
+
+# List all commands
+node winassistai.js --list-commands
+
+# Force Serenade integration
+node winassistai.js --with-serenade
+
+# Disable Serenade integration
+node winassistai.js --no-serenade
+
+# Install Serenade voice control
+node winassistai.js --install-serenade
+
+# Show all options
+node winassistai.js --help
+```
+
+**📚 Need detailed terminal-specific instructions?** Check out the [Terminal Compatibility Guide](TERMINAL_GUIDE.md).
+
+## 🎛️ Command Line Options
+
+```powershell
+.\scripts\winassistai.ps1 [options]
+
+Options:
+  -Help           Show detailed help and usage
+  -ListCommands   Display all available commands by category
+  -TestVoice      Test text-to-speech functionality
+  -Version        Show version information
+  -WithSerenade   Force Serenade voice control launch
+  -NoSerenade     Disable Serenade integration
+
+.\scripts\start-with-serenade.ps1 [options]
+
+Options:
+  -AutoInstall    Automatically install Serenade if not found
+  -QuietMode      Minimal console output
+  -ForceReinstall Reinstall Serenade even if present
+```
+
+## 🎤 Serenade Voice Commands
+
+### Common Voice Commands
+```
+"win assist"             - Launch main WinAssistAI interface
+"hello computer"          - Friendly greeting
+"check weather"           - Get current weather
+"open calculator"         - Launch Windows calculator
+"take screenshot"         - Capture screen
+"check time"              - Get current time
+"good morning"            - Morning greeting
+"thank you computer"      - Polite acknowledgment
+"empty recycle bin"       - Clean recycle bin
+```
+
+### Dynamic Commands
+- Say "run [script-name]" to execute any Talk2Windows script
+- All hyphenated script names work with spaces in voice commands
+- Example: "run check internet speed" executes [`check-internet-speed.ps1`](scripts/check-internet-speed.ps1)
+- Example: "win assist" executes [`win_assist_ai.ps1`](scripts/win_assist_ai.ps1)
+
+## 🔧 Customization
+
+### Adding New Scripts
+
+1. Create a new `.ps1` file in the `scripts/` directory
+2. Include the standard header with synopsis and description
+3. Add TTS functionality using `say.ps1`
+4. Follow the naming convention (`action-target.ps1`)
+
+Example template:
+```powershell
+<#
+.SYNOPSIS
+    Brief description
+.DESCRIPTION
+    Detailed description with TTS functionality
+#>
+
+try {
+    # Your script logic here
+    & "$PSScriptRoot/say.ps1" "Success message"
+    exit 0
+} catch {
+    & "$PSScriptRoot/say.ps1" "Sorry: $($Error[0])"
+    exit 1
+}
+```
+
+### Modifying TTS Behavior
+
+Edit [`say.ps1`](scripts/say.ps1) to customize:
+- Voice selection criteria
+- Speech rate and volume
+- Output logging location
+- Language preferences
+
+## 🌐 Web Integration
+
+Many scripts integrate with online services:
+- **Weather**: wttr.in API for weather data
+- **News**: RSS feeds for current events
+- **Maps**: Google Maps integration
+- **Music**: Various streaming services
+- **Social**: Direct links to platforms
+
+## 🎮 Interactive Features
+
+- **Games**: Tic-tac-toe, Wordle, and more
+- **Timers**: Countdown and reminder systems
+- **Screenshots**: Automatic capture and storage
+- **System Control**: Shutdown, restart, hibernate
+
+## 📊 Monitoring & Diagnostics
+
+Comprehensive system monitoring capabilities:
+- Hardware status (RAM, GPU, drives)
+- Network connectivity and speed
+- System uptime and health
+- Application and service status
+- Security and update status
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add your scripts following the established patterns
+4. Include TTS responses and error handling
+5. Update documentation
+6. Submit a pull request
+
+## 📄 License
+
+This project is licensed under CC0 - see the repository for details.
+
+## 🔗 Links
+
+- **GitHub Repository**: https://github.com/SeanSandoval/win_assist_ai.git
+- **Documentation**: See individual script headers for detailed information
+- **Issues**: Report bugs and request features on GitHub
+
+## 🎉 Getting Started Examples
+
+Try these commands to explore the system:
+
+```powershell
+# Basic interaction
+.\scripts\hello.ps1
+.\scripts\how-are-you.ps1
+
+# System information
+.\scripts\check-weather.ps1
+.\scripts\check-uptime.ps1
+
+# Open applications
+.\scripts\open-calculator.ps1
+.\scripts\open-notepad.ps1
+
+# Entertainment
+.\scripts\play-classical-music.ps1
+.\scripts\lets-play-tic-tac-toe.ps1
+
+# System utilities
+.\scripts\take-screenshot.ps1
+.\scripts\empty-recycle-bin.ps1
+```
+
+---
+
+**WinAssistAI** - Making Windows more conversational, one script at a time! 🎤💻

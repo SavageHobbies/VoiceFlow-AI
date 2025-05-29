@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./check-e-drive-space
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 param([string]$Drive = "E", [int]$MinLevel = 10) # minimum level in GB

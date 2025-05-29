@@ -14,7 +14,7 @@ function GetTempDir {
 try {
 	$path = GetTempDir
 	if (-not(Test-Path "$path" -pathType container)) { throw "The temporary folder at $path doesn't exist yet." }
-	$path = "$path\talk2windows_number.txt"
+	$path = "$path\winassistai_number.txt"
 	if (-not(Test-Path "$path" -pathType leaf)) { throw "I forgot." }
 	$reply = "The number was " + (Get-Content "$path")
 } catch { $reply = "Sorry: $($Error[0])" }

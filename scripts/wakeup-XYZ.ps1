@@ -8,9 +8,9 @@
 .EXAMPLE
 	PS> ./wakeup-XYZ.ps1 MYPC
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 param([string]$Part1 = "", [string]$Part2 = "", [string]$Part3 = "")

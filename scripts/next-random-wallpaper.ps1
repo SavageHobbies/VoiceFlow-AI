@@ -20,7 +20,7 @@ try {
 	$Reply = "Just a moment.", "Just a second.", "Hold on.", "Hold on a second.", "Wait a moment.", "Wait a second.", "OK." | Get-Random
 	& "$PSScriptRoot/say.ps1" "$Reply"
 
-	$Path = "$(GetTempDir)/talk2windows_wallpaper.jpg"
+	$Path = "$(GetTempDir)/winassistai_wallpaper.jpg"
 	& wget -O $Path "https://source.unsplash.com/3840x2160?$Category"
 	if ($lastExitCode -ne "0") { throw "Download failed" }
 

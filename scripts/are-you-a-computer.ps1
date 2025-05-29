@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./are-you-a-computer
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 & "$PSScriptRoot/say.ps1" "Not exactly. I'm the operating system of this computer."

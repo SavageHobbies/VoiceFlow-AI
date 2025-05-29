@@ -13,7 +13,7 @@ function GetTempDir {
 }
 
 try {
-	$path = "$(GetTempDir)/talk2windows.txt"
+	$path = "$(GetTempDir)/winassistai.txt"
 	if (Test-Path "$path" -pathType leaf) {
 		$reply = "I said: " + (Get-Content "$path")
 	} else {

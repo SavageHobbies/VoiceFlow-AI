@@ -16,7 +16,7 @@ function GetTempDir {
 try {
 	$path = GetTempDir
 	if (-not(Test-Path "$path" -pathType container)) { throw "The temporary folder at $path doesn't exist yet." }
-	"$number" > "$path\talk2windows_number.txt"
+	"$number" > "$path\winassistai_number.txt"
 	$reply = "OK, $number remembered."
 } catch { $reply = "Sorry: $($Error[0])" }
 & "$PSScriptRoot/say.ps1" $reply

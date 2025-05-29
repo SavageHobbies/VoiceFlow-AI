@@ -20,7 +20,7 @@ try {
 		if ($OtherVoice.GetDescription() -like "*- $($Language)*") { 
 			$Voice.Voice = $OtherVoice
 			[void]$Voice.Speak($text)
-			"$text" > "$(GetTempDir)/talk2windows_last_reply.txt"
+			"$text" > "$(GetTempDir)/winassistai_last_reply.txt"
 			exit 0 # success
 		}
 	}

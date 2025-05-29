@@ -6,9 +6,9 @@
 .EXAMPLE
 	./check-for-pending-reboot.ps1
 .LINK
-        https://github.com/fleschutz/talk2windows
+        https://github.com/savagehobbies/winassistai
 .NOTES
-        Author: Markus Fleschutz | License: CC0
+        Author: Sean Sandoval | License: CC0
 #>
 
 function Test-RegistryValue { param([parameter(Mandatory=$true)][ValidateNotNullOrEmpty()]$Path, [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()]$Value)

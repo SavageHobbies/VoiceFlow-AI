@@ -6,4 +6,4 @@
 #>
 
 & "$PSScriptRoot/say.ps1" "Hold on."
-& "$PSScriptRoot/open-browser.ps1" "https://github.com/fleschutz/talk2windows"
+& "$PSScriptRoot/open-browser.ps1" "https://github.com/savagehobbies/winassistai"

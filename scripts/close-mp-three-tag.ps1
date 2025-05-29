@@ -6,9 +6,9 @@
 .EXAMPLE
 	PS> ./close-mp-three-tag
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/savagehobbies/winassistai
 #>
 
 TaskKill /im Mp3tag.exe /f /t

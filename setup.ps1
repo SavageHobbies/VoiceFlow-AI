@@ -1,19 +1,19 @@
 ﻿<#
 .SYNOPSIS
-	Configures Talk2Windows
+	Configures WinAssistAI
 .DESCRIPTION
 	This script exports all PowerShell scripts from subfolder 'scripts' as Serenade voice phrases.
 .EXAMPLE
 	PS> ./setup.ps1 
 .NOTES
-	Author: Markus Fleschutz / License: CC0
+	Author: Sean Sandoval / License: CC0
 .LINK
-	https://github.com/fleschutz/talk2windows
+	https://github.com/fleschutz/WinAssistAI
 #>
 
 #requires -version 2
 
-param([string]$filePattern = "$PSScriptRoot\scripts\*.ps1", [string]$app = "terminal", [string]$targetFile = "$HOME\.serenade\scripts\Talk2Windows.js")
+param([string]$filePattern = "$PSScriptRoot\scripts\*.ps1", [string]$app = "terminal", [string]$targetFile = "$HOME\.serenade\scripts\WinAssistAI.js")
 
 function AddVoiceCmd { param([string]$phrase, [string]$scriptName)
 	$phrase = $phrase -replace "-"," "
@@ -28,7 +28,7 @@ function AddMatchingVoiceCmd { param([string]$phrase, [string]$scriptName)
 try {
 	Clear
 	""
-	"⚙️ Setup of Talk2Windows"
+	"⚙️ Setup of WinAssistAI"
 	"________________________"
 	""
 	""
@@ -42,7 +42,7 @@ try {
 	" 3. Found $($scripts.Count) scripts at: $filePattern... OK"
 
 	Write-Host " 4. Writing voice commands to: $targetFile..." -noNewline
-	"/* DO NOT EDIT! This file has been generated automatically by Talk2Windows */" | Set-Content "$targetFile"
+	"/* DO NOT EDIT! This file has been generated automatically by WinAssistAI */" | Set-Content "$targetFile"
 	"var A = `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`";" | Add-Content "$targetFile"
 	$scriptRoot = "$PSScriptRoot"
 	$scriptRoot = $scriptRoot -replace "\\","\\"
@@ -76,7 +76,7 @@ try {
 	""
 	""
 	""
-	"🎧 Usage of Talk2Windows"
+	"🎧 Usage of WinAssistAI"
 	"________________________"
 	""
 	""
@@ -89,7 +89,7 @@ try {
 	""
 	""
 	""
-	"Say `"$wakeWord, I need help`" or visit: https://github.com/fleschutz/talk2windows to see all supported voice commands."
+	"Say `"$wakeWord, I need help`" or visit: https://github.com/fleschutz/WinAssistAI to see all supported voice commands."
 	""
 	Start-Sleep -seconds 90
 	exit 0 # success
