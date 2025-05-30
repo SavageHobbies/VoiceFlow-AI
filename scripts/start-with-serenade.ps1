@@ -1,4 +1,4 @@
-<#
+# Sim<#
 .SYNOPSIS
     Start WinAssistAI with Full Serenade Integration
 .DESCRIPTION
@@ -18,17 +18,21 @@ param(
     [switch]$ForceReinstall
 )
 
+# Import shared functions
+. (Join-Path $PSScriptRoot "_shared-functions.ps1")
+
 try {
     if (-not $QuietMode) {
-        Write-Host @"
-WIN_ASSIST_AI + Serenade Voice Control Integration
-Complete Hands-Free Windows Assistant
-"@ -ForegroundColor Cyan
+        Write-Host ("WIN_ASSIST_AI + Serenade Voice Control Integration`nComplete Hands-Free Windows Assistant") -ForegroundColor Cyan
     }
     
     Write-Host "[STARTUP] Initializing WinAssistAI with Serenade integration..." -ForegroundColor Yellow
     Write-Host ""
     
+    # --- Define Project Root ---
+    $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    Write-Host ("[INFO] Project root identified as: {0}" -f $projectRoot) -ForegroundColor Gray
+
     # Step 1: Check Serenade installation
     Write-Host "[STEP 1] Checking Serenade installation..." -ForegroundColor Cyan
     
@@ -43,7 +47,7 @@ Complete Hands-Free Windows Assistant
         if (Test-Path $path) {
             $serenadeInstalled = $true
             $env:SERENADE_PATH = $path
-            Write-Host "[✓] Serenade found at: $path" -ForegroundColor Green
+            Write-Host ("[OK] Serenade found at: {0}" -f $path) -ForegroundColor Green
             break
         }
     }
@@ -84,6 +88,51 @@ Complete Hands-Free Windows Assistant
         }
     }
     
+    # Step 1.5: Generate/Update Serenade Custom Script (winassistai-serenade.js)
+    if ($serenadeInstalled) { # Only proceed if Serenade is considered installed
+        Write-Host "[STEP 1.5] Configuring Serenade custom script (winassistai-serenade.js)..." -ForegroundColor Cyan
+        try {
+            $wakeWord = Get-EnvVariable -KeyName "WAKE_WORD" -DefaultValue "COMPUTER"
+            
+            # Resolve paths safely and format for JS (forward slashes)
+            $commandsJsonPath = (Get-NormalizedPath -Path (Join-Path $projectRoot "scripts\serenade-commands.json"))
+            $bridgePs1Path = (Get-NormalizedPath -Path (Join-Path $projectRoot "scripts\serenade-bridge.ps1"))
+            
+            # Define Serenade user scripts directory (Windows specific)
+            $serenadeUserScriptsPath = Join-Path $env:APPDATA "Serenade\scripts"
+            if (-not (Test-Path $serenadeUserScriptsPath)) {
+                Write-Host ("[INFO] Creating Serenade user scripts directory: {0}" -f $serenadeUserScriptsPath) -ForegroundColor Yellow
+                New-Item -ItemType Directory -Force -Path $serenadeUserScriptsPath | Out-Null
+            }
+
+            $jsTemplatePath = (Resolve-Path (Join-Path $projectRoot "scripts\serenade_custom_script_template.js")).Path
+            if (-not (Test-Path $jsTemplatePath)) {
+                throw ("Serenade custom script template not found at {0}" -f $jsTemplatePath)
+            }
+            $jsTemplateContent = Get-Content $jsTemplatePath -Raw
+
+            $jsOutputContent = $jsTemplateContent.Replace("__WAKE_WORD_PLACEHOLDER__", $wakeWord)
+            $jsOutputContent = $jsOutputContent.Replace("__COMMANDS_FILE_PATH_PLACEHOLDER__", $commandsJsonPath)
+            $jsOutputContent = $jsOutputContent.Replace("__POWERSHELL_SCRIPT_BRIDGE_PLACEHOLDER__", $bridgePs1Path)
+
+            $outputJsFilePath = Join-Path $serenadeUserScriptsPath "winassistai-serenade.js"
+            Set-Content -Path $outputJsFilePath -Value $jsOutputContent -Encoding UTF8
+            Write-Host ("[OK] Serenade custom script 'winassistai-serenade.js' generated/updated in '{0}'." -f $serenadeUserScriptsPath) -ForegroundColor Green
+            Write-Host ("[INFO]  - Wake Word: {0}" -f $wakeWord) -ForegroundColor Gray
+            Write-Host ("[INFO]  - Commands JSON Path: {0}" -f $commandsJsonPath) -ForegroundColor Gray
+            Write-Host ("[INFO]  - Bridge Script Path: {0}" -f $bridgePs1Path) -ForegroundColor Gray
+            Write-Host "[INFO] You may need to tell Serenade to 'reload custom scripts' or restart Serenade if it's already running." -ForegroundColor Yellow
+
+        } catch {
+            Write-Warning ("[WARNING] Failed to generate/update Serenade custom script: {0}" -f $_.Exception.Message)
+            Write-Warning "[WARNING] Wake word and AI functionality via Serenade custom script might not work."
+            # Continue startup, as core functionality might still work if Serenade has old/no script
+        }
+    } else {
+        Write-Host "[SKIP] Skipping Serenade custom script generation as Serenade is not installed." -ForegroundColor Yellow
+    }
+    Write-Host ""
+
     # Step 2: Launch Serenade if installed
     if ($serenadeInstalled) {
         Write-Host "[STEP 2] Starting Serenade voice control..." -ForegroundColor Cyan
@@ -103,12 +152,12 @@ Complete Hands-Free Windows Assistant
             } while (-not $serenadeProcess -and $count -lt $timeout)
             
             if ($serenadeProcess) {
-                Write-Host "[✓] Serenade started successfully (PID: $($serenadeProcess.Id))" -ForegroundColor Green
+                Write-Host ("[OK] Serenade started successfully (PID: {0})" -f $serenadeProcess.Id) -ForegroundColor Green
             } else {
                 Write-Host "[WARNING] Serenade may not have started properly" -ForegroundColor Yellow
             }
         } else {
-            Write-Host "[✓] Serenade is already running (PID: $($serenadeProcess.Id))" -ForegroundColor Green
+            Write-Host ("[OK] Serenade is already running (PID: {0})" -f $serenadeProcess.Id) -ForegroundColor Green
         }
     }
     
@@ -116,18 +165,18 @@ Complete Hands-Free Windows Assistant
     Write-Host "[STEP 3] Setting up voice command bridge..." -ForegroundColor Cyan
     try {
         & "$PSScriptRoot/serenade-bridge.ps1" -Setup
-        Write-Host "[✓] Voice command bridge configured" -ForegroundColor Green
+        Write-Host "[OK] Voice command bridge configured" -ForegroundColor Green
     } catch {
-        Write-Host "[WARNING] Bridge setup encountered issues: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host ("[WARNING] Bridge setup encountered issues: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
     }
     
     # Step 4: Generate Serenade configuration
     Write-Host "[STEP 4] Generating Serenade voice commands..." -ForegroundColor Cyan
     try {
         & "$PSScriptRoot/serenade-bridge.ps1" -GenerateConfig
-        Write-Host "[✓] Voice command configuration generated" -ForegroundColor Green
+        Write-Host "[OK] Voice command configuration generated" -ForegroundColor Green
     } catch {
-        Write-Host "[WARNING] Command generation failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host ("[WARNING] Command generation failed: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
     }
     
     # Step 5: Start WinAssistAI with Serenade integration
@@ -138,7 +187,13 @@ Complete Hands-Free Windows Assistant
     & "$PSScriptRoot/say.ps1" "WinAssistAI with Serenade voice control is starting up."
     
     # Launch main WinAssistAI with Serenade enabled
-    & "$PSScriptRoot/win_assist_ai.ps1" -WithSerenade
+    try {
+        & "$PSScriptRoot/win_assist_ai.ps1" -WithSerenade
+    } catch {
+        Write-Host ("[ERROR] Failed to start WinAssistAI: {0}" -f $_.Exception.Message) -ForegroundColor Red
+        & "$PSScriptRoot/say.ps1" "Failed to start the main assistant."
+        exit 1
+    }
     
     Write-Host ""
     Write-Host "[SUCCESS] WinAssistAI + Serenade integration startup completed!" -ForegroundColor Green
@@ -173,9 +228,9 @@ Complete Hands-Free Windows Assistant
                 $shortcut.WorkingDirectory = $PSScriptRoot
                 $shortcut.Description = "WinAssistAI with Serenade Voice Control"
                 $shortcut.Save()
-                Write-Host "[✓] Desktop shortcut created successfully!" -ForegroundColor Green
+                Write-Host "[OK] Desktop shortcut created successfully!" -ForegroundColor Green
             } catch {
-                Write-Host "[WARNING] Could not create shortcut: $($_.Exception.Message)" -ForegroundColor Yellow
+                Write-Host ("[WARNING] Could not create shortcut: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
             }
         }
     }
@@ -183,7 +238,7 @@ Complete Hands-Free Windows Assistant
     exit 0
     
 } catch {
-    Write-Host "[ERROR] Startup error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host ("[ERROR] Startup error: {0}" -f $_.Exception.Message) -ForegroundColor Red
     & "$PSScriptRoot/say.ps1" "Sorry, an error occurred during startup."
     exit 1
 }

@@ -10,20 +10,20 @@
 
 param([string]$t="")
 
-# Try to use enhanced TTS system first
-$enhancedScript = Join-Path $PSScriptRoot "say-enhanced.ps1"
+# Use working Windows TTS system
+$workingScript = Join-Path $PSScriptRoot "say-working.ps1"
 
-if (Test-Path $enhancedScript) {
+if (Test-Path $workingScript) {
     try {
-        # Use enhanced TTS system
-        & $enhancedScript -Text $t
+        # Use working TTS system
+        & $workingScript $t
         exit $LASTEXITCODE
     } catch {
-        Write-Warning "Enhanced TTS failed, falling back to basic TTS: $($_.Exception.Message)"
+        Write-Warning "Working TTS failed, falling back to basic TTS: $($_.Exception.Message)"
     }
 }
 
-# Fallback to original Windows SAPI TTS
+# Fallback to basic Windows SAPI TTS
 try {
     $TTS = New-Object -ComObject SAPI.SPVoice
     foreach($v in $TTS.GetVoices()) {

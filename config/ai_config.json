@@ -1,0 +1,14 @@
+{
+    "default_provider": "OpenAI",
+    "providers": {
+        "OpenAI": {
+            "api_key_env": "OPENAI_API_KEY",
+            "selected_model": "gpt-3.5-turbo",
+            "available_models": [
+                "gpt-4",
+                "gpt-4-turbo",
+                "gpt-3.5-turbo"
+            ]
+        }
+    }
+}

@@ -1,18 +1,23 @@
 {
-  "enabled": false,
+  "enabled": true,
   "apiKey": "",
   "apiUrl": "https://api.elevenlabs.io/v1",
   "voice": {
     "id": "21m00Tcm4TlvDq8ikWAM",
     "name": "Rachel",
-    "stability": 0.5,
-    "similarityBoost": 0.75,
-    "style": 0.0,
+    "stability": 0.7,
+    "similarityBoost": 0.85,
+    "style": 0.2,
     "useSpeakerBoost": true
   },
   "model": "eleven_monolingual_v1",
   "outputFormat": "mp3_44100_128",
-  "chunkLengthSchedule": [120, 160, 250, 290],
+  "chunkLengthSchedule": [
+    120,
+    160,
+    250,
+    290
+  ],
   "fallbackToWindows": true,
   "cacheAudio": true,
   "cacheDirectory": "cache/audio",

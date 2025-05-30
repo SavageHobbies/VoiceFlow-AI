@@ -92,12 +92,45 @@ if ($TestIntegration) {
 }
 
 if ($Command) {
-    $scriptPath = "$PSScriptRoot/$($Command -replace ' ', '-').ps1"
-    if (Test-Path $scriptPath) {
-        & $scriptPath
+    # Check if the command is for the conversational AI
+    if ($Command -match "^ask-ai\s+(.+)") {
+        $userInputToAI = $matches[1].Trim()
+        $converseScriptPath = Join-Path $PSScriptRoot "converse-with-ai.ps1"
+
+        if (Test-Path $converseScriptPath) {
+            Write-Host "[BRIDGE] Routing to AI: '$userInputToAI'" -ForegroundColor Green
+            try {
+                & $converseScriptPath -UserInputText $userInputToAI
+            } catch {
+                Write-Error "Error executing converse-with-ai.ps1: $($_.Exception.Message)"
+                & "$PSScriptRoot/say.ps1" "Sorry, there was an error trying to talk to the AI."
+                exit 1
+            }
+        } else {
+            Write-Error "[ERROR] converse-with-ai.ps1 script not found at $converseScriptPath"
+            & "$PSScriptRoot/say.ps1" "Sorry, the AI conversation script is missing."
+            exit 1
+        }
     } else {
-        Write-Host "[ERROR] Command not found: $Command" -ForegroundColor Red
-        exit 1
+        # Original command handling for predefined scripts
+        $scriptPath = "$PSScriptRoot/$($Command -replace ' ', '-').ps1"
+        if (Test-Path $scriptPath) {
+            Write-Host "[BRIDGE] Executing command: $Command (Script: $scriptPath)" -ForegroundColor Green
+            try {
+                & $scriptPath
+            } catch {
+                Write-Error "Error executing script $scriptPath : $($_.Exception.Message)"
+                # Potentially speak this error too
+                & "$PSScriptRoot/say.ps1" "Sorry, an error occurred while running the command $Command."
+                exit 1
+            }
+        } else {
+            Write-Host "[ERROR] Command not found or script does not exist: $Command (Path attempted: $scriptPath)" -ForegroundColor Red
+            # The JS template should prevent this for general queries by routing to "ask-ai"
+            # This path would be hit if JS sends a specific command that doesn't map to a .ps1 file
+            & "$PSScriptRoot/say.ps1" "Sorry, I didn't recognize the command $Command."
+            exit 1
+        }
     }
     exit 0
 }

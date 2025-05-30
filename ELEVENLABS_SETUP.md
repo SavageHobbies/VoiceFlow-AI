@@ -27,12 +27,29 @@ ElevenLabs integration provides:
 
 ### Step 1: Get Your API Key
 
-1. Visit [elevenlabs.io](https://elevenlabs.io) and create an account
-2. Log in to your dashboard
-3. Go to your **Profile** settings
-4. Copy your **API Key**
+1. Visit [elevenlabs.io](https://elevenlabs.io) and create an account.
+2. Log in to your dashboard.
+3. Go to your **Profile** settings.
+4. Copy your **API Key**.
 
-### Step 2: Run Setup Wizard
+### Step 2: Configure .env File
+
+1. In the root of your WinAssistAI repository, find the file named `.env.example`.
+2. Create a copy of this file and name it `.env`.
+3. Open the `.env` file in a text editor.
+4. Find the line `ELEVENLABS_API_KEY=YOUR_ELEVENLABS_API_KEY_HERE`.
+5. Replace `YOUR_ELEVENLABS_API_KEY_HERE` with the API key you copied from the ElevenLabs dashboard.
+   ```env
+   # Example:
+   ELEVENLABS_API_KEY=sk_abcdef1234567890abcdef12345678
+   ```
+6. Save the `.env` file.
+
+**Important**: The `.env` file contains sensitive API keys. Ensure it is not committed to public repositories. The `.gitignore` file should already be configured to ignore `.env`.
+
+### Step 3: Run Setup Wizard
+
+Now that your API key is configured in the `.env` file, run the setup wizard:
 
 ```powershell
 # Navigate to WinAssistAI directory
@@ -42,14 +59,19 @@ cd path\to\winassistai
 .\scripts\setup-elevenlabs.ps1
 ```
 
-The setup wizard will:
-- Test your API key
-- Show available voices
-- Let you select a voice
-- Configure quality settings
-- Test the voice system
+The setup wizard (default interactive mode) will automatically read the `ELEVENLABS_API_KEY` from your `.env` file. It will **not** ask you to enter the API key directly.
 
-### Step 3: Test Your Setup
+The interactive wizard will then proceed to:
+- Test your API key (loaded from `.env`).
+- List available voices from the ElevenLabs API.
+- Let you select a voice.
+- Allow you to configure voice quality settings (stability, similarity, style).
+- Save these settings to `config/elevenlabs.json`.
+- Test the voice system with your chosen configuration.
+
+For advanced users or scripting, `setup-elevenlabs.ps1` also supports non-interactive modes to set a specific voice or list available voices. See the "Command Reference" section for details.
+
+### Step 4: Test Your Setup
 
 ```powershell
 # Test the complete system
@@ -64,12 +86,13 @@ The setup wizard will:
 
 ## Manual Configuration
 
-If you prefer manual setup, edit `config/elevenlabs.json`:
+If you prefer manual setup, edit `config/elevenlabs.json`.
+**Note on `apiKey`**: With the new `.env` based setup, the `apiKey` field in this JSON file is no longer used to store the actual key. The `setup-elevenlabs.ps1` script will set it to a placeholder like `"loaded_from_env"`. You should not paste your actual API key here. The key is exclusively read from the `.env` file by the scripts.
 
 ```json
 {
   "enabled": true,
-  "apiKey": "your-api-key-here",
+  "apiKey": "loaded_from_env", // This is a placeholder, actual key comes from .env
   "apiUrl": "https://api.elevenlabs.io/v1",
   "voice": {
     "id": "21m00Tcm4TlvDq8ikWAM",
@@ -154,12 +177,15 @@ Once configured, ElevenLabs works automatically:
 
 #### 1. API Key Not Working
 ```powershell
-# Test your API key
-.\scripts\test-elevenlabs.ps1 -Status
+# Test your API key (it's read from .env)
+.\scripts\setup-elevenlabs.ps1 
 ```
-- Verify API key is correct
-- Check internet connection
-- Ensure ElevenLabs service is available
+The setup script now directly tests the key from `.env`. If it fails, it will report an error.
+Ensure:
+- Your API key in the `.env` file is correct.
+- The `.env` file is in the root of the repository.
+- You have an internet connection.
+- The ElevenLabs service is available.
 
 #### 2. Voice Not Playing
 ```powershell
@@ -200,15 +226,51 @@ Once configured, ElevenLabs works automatically:
 
 ## Command Reference
 
-### Setup Commands
-```powershell
-.\scripts\setup-elevenlabs.ps1              # Interactive setup
-.\scripts\setup-elevenlabs.ps1 -ApiKey KEY  # Setup with specific key
-```
+### `setup-elevenlabs.ps1`
 
-### Testing Commands
+This script manages the configuration for ElevenLabs Text-to-Speech. It primarily interacts with the `config/elevenlabs.json` file and uses the `ELEVENLABS_API_KEY` from your `.env` file.
+
+**Usage Modes:**
+
+1.  **Interactive Setup (Default)**:
+    ```powershell
+    .\scripts\setup-elevenlabs.ps1
+    # OR explicitly:
+    .\scripts\setup-elevenlabs.ps1 -Interactive
+    ```
+    This mode guides you through testing your API key, listing available voices, selecting a voice, and configuring voice quality settings. It's recommended for first-time setup or when you want a guided experience.
+
+2.  **Set Specific Voice (Non-Interactive)**:
+    ```powershell
+    .\scripts\setup-elevenlabs.ps1 -SetVoice -VoiceID "YourVoiceIDHere" 
+    # Example with optional VoiceName:
+    .\scripts\setup-elevenlabs.ps1 -SetVoice -VoiceID "21m00Tcm4TlvDq8ikWAM" -VoiceName "Rachel"
+    ```
+    - `-SetVoice`: Switch to activate this mode.
+    - `-VoiceID <string>`: (Mandatory) The ID of the ElevenLabs voice you want to set.
+    - `-VoiceName <string>`: (Optional) A friendly name for the voice. If not provided, the script will attempt to fetch the name using the Voice ID, or default to "ID: YourVoiceIDHere (Name not fetched)".
+    This mode will update `config/elevenlabs.json` with the specified voice, provided your API key in `.env` is valid. It will also set ElevenLabs to "enabled".
+
+3.  **List Available Voices (Non-Interactive)**:
+    ```powershell
+    .\scripts\setup-elevenlabs.ps1 -ListAvailableVoices
+    ```
+    This mode fetches all available voices from your ElevenLabs account (using the API key in `.env`) and lists their names and IDs to the console. It will also attempt to speak the list of voice names.
+
+4.  **Help**:
+    ```powershell
+    .\scripts\setup-elevenlabs.ps1 -Help
+    ```
+    Displays the help information for the script.
+
+**Important Notes:**
+- The old `-ApiKey` parameter has been removed. The API key is always sourced from the `ELEVENLABS_API_KEY` variable in your `.env` file.
+- All modes that interact with the ElevenLabs API will first test the API key from `.env`. If the key is missing or invalid, the script will inform you and may set ElevenLabs to "disabled" in the configuration.
+
+### `test-elevenlabs.ps1` (Legacy Test Script)
+The `test-elevenlabs.ps1` script was used for some older testing functionalities. While some of its functions might still be relevant (like `-Test`), primary setup and voice configuration are now handled by `setup-elevenlabs.ps1`.
 ```powershell
-.\scripts\test-elevenlabs.ps1 -Test         # Run all tests
+.\scripts\test-elevenlabs.ps1 -Test         # Run some general tests
 .\scripts\test-elevenlabs.ps1 -Status       # Show configuration status
 .\scripts\test-elevenlabs.ps1 -ListVoices   # List available voices
 .\scripts\test-elevenlabs.ps1 -Voice "Name" # Test specific voice
@@ -255,10 +317,10 @@ node winassistai.js --list-voices
 
 ## Security Notes
 
-- API keys are stored locally in `config/elevenlabs.json`
-- Audio cache is stored in `cache/audio/`
-- No audio data is transmitted except to ElevenLabs
-- Configuration file should not be shared publicly
+- Your ElevenLabs API key is stored in the `.env` file in the repository root. **Do not commit this file to public version control.**
+- The `config/elevenlabs.json` file stores your voice preferences and other settings, but not the API key itself (it uses a placeholder).
+- Audio cache is stored in `cache/audio/`.
+- No audio data is transmitted except to ElevenLabs.
 
 ## Integration with WinAssistAI
 

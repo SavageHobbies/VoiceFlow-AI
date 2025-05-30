@@ -6,13 +6,52 @@
     in the Talk2Windows system.
 .EXAMPLE
     .\setup-elevenlabs.ps1
+    .\setup-elevenlabs.ps1 -SetVoiceID "21m00Tcm4TlvDq8ikWAM" -SetVoiceName "Rachel"
+    .\setup-elevenlabs.ps1 -ListAvailableVoices
+.NOTES
+    This script interacts with config/elevenlabs.json and requires ELEVENLABS_API_KEY in the .env file.
 #>
 
+[CmdletBinding(DefaultParameterSetName = "Interactive")]
 param(
-    [string]$ApiKey = "",
+    [Parameter(ParameterSetName = "Interactive")]
+    [switch]$Interactive,
+
+    [Parameter(ParameterSetName = "SetVoice", Mandatory = $true)]
+    [switch]$SetVoice,
+    [Parameter(ParameterSetName = "SetVoice", Mandatory = $true)]
+    [string]$VoiceID,
+    [Parameter(ParameterSetName = "SetVoice")]
+    [string]$VoiceName,
+
+    [Parameter(ParameterSetName = "ListVoices")]
+    [switch]$ListAvailableVoices,
+
+    [Parameter(Mandatory = $false)] # Kept for general script structure, not directly used for API key input
     [switch]$Help,
+    [Parameter(Mandatory = $false)]
     [switch]$Verbose
 )
+
+# Function to load .env file from repository root
+function Get-EnvVariable {
+    param (
+        [string]$KeyName
+    )
+    $envFilePath = Join-Path $PSScriptRoot "..\.env" # Assumes script is in 'scripts' subdir
+    if (-not (Test-Path $envFilePath)) {
+        Write-Warning ("env file not found at {0}" -f $envFilePath)
+        return $null
+    }
+    $envContent = Get-Content $envFilePath
+    foreach ($line in $envContent) {
+        if ($line -match "^\s*$KeyName\s*=\s*(.+)\s*$") {
+            return $matches[1].Trim()
+        }
+    }
+    Write-Warning ("Key '{0}' not found in .env file." -f $KeyName)
+    return $null
+}
 
 $ScriptRoot = $PSScriptRoot
 $ConfigPath = Join-Path (Split-Path $ScriptRoot -Parent) "config\elevenlabs.json"
@@ -30,14 +69,15 @@ REQUIREMENTS:
 • Internet connection
 
 USAGE:
-    .\setup-elevenlabs.ps1              # Interactive setup
-    .\setup-elevenlabs.ps1 -ApiKey KEY  # Setup with API key
-    .\setup-elevenlabs.ps1 -Help        # Show this help
+    .\setup-elevenlabs.ps1                     # Interactive full setup
+    .\setup-elevenlabs.ps1 -Interactive        # Explicitly run interactive full setup
+    .\setup-elevenlabs.ps1 -SetVoice -VoiceID "YourVoiceID" [-SetVoiceName "OptionalVoiceName"] # Set specific voice
+    .\setup-elevenlabs.ps1 -ListAvailableVoices  # List all available voices from ElevenLabs
+    .\setup-elevenlabs.ps1 -Help               # Show this help
 
-STEPS:
-1. Sign up at https://elevenlabs.io
-2. Get your API key from the dashboard
-3. Run this setup script
+STEPS (for manual understanding, API key is from .env):
+1. Ensure ELEVENLABS_API_KEY is in your .env file.
+2. Run this script using one of the modes above.
 4. Test your voice configuration
 
 "@ -ForegroundColor Cyan
@@ -87,7 +127,7 @@ function Get-AvailableVoices {
         $response = Invoke-RestMethod -Uri "$ApiUrl/voices" -Headers $headers -Method Get -TimeoutSec 15
         return $response.voices
     } catch {
-        Write-Warning "Failed to get voices: $($_.Exception.Message)"
+        Write-Warning ("Failed to get voices: {0}" -f $_.Exception.Message)
         return $null
     }
 }
@@ -130,84 +170,91 @@ function Save-Config {
         Write-Host "[✓] Configuration saved to: $ConfigPath" -ForegroundColor Green
         return $true
     } catch {
-        Write-Host "[✗] Failed to save configuration: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host ("[✗] Failed to save configuration: {0}" -f $_.Exception.Message) -ForegroundColor Red
         return $false
     }
 }
 
+
 function Start-InteractiveSetup {
     Show-Banner
-    
     Write-Host "Welcome to the ElevenLabs AI Voice Setup Wizard!" -ForegroundColor Green
+    Write-Host ""
+
+    # Load existing config or get defaults
+    $config = if (Test-Path $ConfigPath) {
+        Get-Content $ConfigPath -Raw | ConvertFrom-Json
+    } else {
+        Get-DefaultConfig
+    }
+
+    # Attempt to load API key from .env file - This also sets $config.enabled
+    $apiKeyValid = Test-And-SetApiKeyStatus -ConfigRef ([ref]$config)
+    if (-not $apiKeyValid) {
+        Save-Config -Config $config # Save with enabled:false if key is bad/missing
+        return # Exit if API key is not found or invalid
+    }
+    
     Write-Host ""
     Write-Host "This wizard will help you configure high-quality AI voice synthesis for Talk2Windows." -ForegroundColor White
     Write-Host ""
     
-    # Check if already configured
-    if (Test-Path $ConfigPath) {
-        try {
-            $existingConfig = Get-Content $ConfigPath -Raw | ConvertFrom-Json
-            if ($existingConfig.enabled -and -not [string]::IsNullOrWhiteSpace($existingConfig.apiKey)) {
-                Write-Host "[INFO] ElevenLabs is already configured" -ForegroundColor Yellow
-                $reconfigure = Read-Host "Do you want to reconfigure? (y/N)"
-                if ($reconfigure -notmatch '^y|yes$') {
-                    Write-Host "[SKIP] Setup cancelled" -ForegroundColor Yellow
-                    return
-                }
-            }
-        } catch {
-            Write-Host "[WARNING] Existing config is corrupted, starting fresh setup" -ForegroundColor Yellow
+    # Prompt for re-configuration of voice/settings if already configured
+    if ($config.enabled -and $config.apiKey -eq "loaded_from_env") { 
+        $reconfigure = Read-Host "ElevenLabs is already configured (API key loaded). Do you want to change voice or other settings? (y/N)"
+        if ($reconfigure -notmatch '^y|yes$') {
+            Write-Host "[SKIP] Setup for voice and other settings cancelled. Configuration remains as is." -ForegroundColor Yellow
+            Save-Config -Config $config 
+            return
         }
     }
     
-    # Step 1: Get API Key
-    Write-Host "STEP 1: ElevenLabs API Key" -ForegroundColor Cyan
-    Write-Host "═══════════════════════════" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "You need an ElevenLabs API key to use AI voice synthesis." -ForegroundColor White
-    Write-Host ""
-    Write-Host "To get your API key:" -ForegroundColor Yellow
-    Write-Host "1. Visit: https://elevenlabs.io" -ForegroundColor White
-    Write-Host "2. Sign up for a free account" -ForegroundColor White
-    Write-Host "3. Go to your Profile settings" -ForegroundColor White
-    Write-Host "4. Copy your API key" -ForegroundColor White
-    Write-Host ""
-    
-    if ([string]::IsNullOrWhiteSpace($ApiKey)) {
-        $ApiKey = Read-Host "Enter your ElevenLabs API key"
+    # API Key is valid and $config.enabled is true here.
+    Perform-InteractiveVoiceSelection -ConfigRef ([ref]$config) -ApiKey $Global:ApiKey
+    Perform-InteractiveAdvancedSettings -ConfigRef ([ref]$config)
+    Save-ConfigurationAndTest -Config $config
+}
+
+# Helper to test API key and set config.enabled status
+function Test-And-SetApiKeyStatus {
+    param([ref]$ConfigRef)
+
+    $envApiKey = Get-EnvVariable "ELEVENLABS_API_KEY"
+    $Global:ApiKey = $envApiKey # Make it available globally if found for other functions
+
+    if (-not [string]::IsNullOrWhiteSpace($envApiKey)) {
+        Write-Host ("[INFO] ELEVENLABS_API_KEY found in .env file. Testing it...") -ForegroundColor Green
+        $testResult = Test-ApiKey -Key $Global:ApiKey
+        
+        if ($testResult.Success) {
+            Write-Host "[✓] API key is valid!" -ForegroundColor Green
+            if ($testResult.User.subscription) {
+                Write-Host ("[INFO] Subscription: {0}" -f $testResult.User.subscription.tier) -ForegroundColor Cyan
+            }
+            $ConfigRef.Value.enabled = $true
+            Write-Host "[INFO] ElevenLabs will be ENABLED in the configuration." -ForegroundColor Green
+            return $true
+        } else {
+            Write-Warning ("[✗] API key test failed: {0} using key from .env." -f $testResult.Error)
+            Write-Host "Please check your .env file and ensure the API key is correct." -ForegroundColor Yellow
+            $ConfigRef.Value.enabled = $false
+            Write-Host "[INFO] ElevenLabs will be DISABLED due to invalid API key." -ForegroundColor Yellow
+            return $false
+        }
+    } else {
+        Write-Error "ELEVENLABS_API_KEY not found or empty in .env file."
+        Write-Host "Please create or update .env file with your API key." -ForegroundColor Yellow
+        $ConfigRef.Value.enabled = $false
+        Write-Host "[INFO] ElevenLabs will be DISABLED due to missing API key." -ForegroundColor Yellow
+        return $false
     }
-    
-    if ([string]::IsNullOrWhiteSpace($ApiKey)) {
-        Write-Host "[CANCELLED] Setup cancelled - no API key provided" -ForegroundColor Red
-        return
-    }
-    
-    # Step 2: Test API Key
-    Write-Host "`nSTEP 2: Testing API Key" -ForegroundColor Cyan
-    Write-Host "═══════════════════════" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "Testing your API key..." -ForegroundColor Yellow
-    
-    $testResult = Test-ApiKey -Key $ApiKey
-    
-    if (-not $testResult.Success) {
-        Write-Host "[✗] API key test failed: $($testResult.Error)" -ForegroundColor Red
-        Write-Host ""
-        Write-Host "Please check:" -ForegroundColor Yellow
-        Write-Host "• Your API key is correct" -ForegroundColor White
-        Write-Host "• You have internet connection" -ForegroundColor White
-        Write-Host "• ElevenLabs service is available" -ForegroundColor White
-        return
-    }
-    
-    Write-Host "[✓] API key is valid!" -ForegroundColor Green
-    if ($testResult.User.subscription) {
-        Write-Host "[INFO] Subscription: $($testResult.User.subscription.tier)" -ForegroundColor Cyan
-    }
-    Write-Host ""
-    
-    # Step 3: Voice Selection
-    Write-Host "STEP 3: Voice Selection" -ForegroundColor Cyan
+}
+
+# Helper for interactive voice selection part
+function Perform-InteractiveVoiceSelection {
+    param([ref]$ConfigRef, [string]$ApiKey)
+
+    Write-Host "`nSTEP 1: Voice Selection" -ForegroundColor Cyan
     Write-Host "══════════════════════" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Fetching available voices..." -ForegroundColor Yellow
@@ -215,138 +262,222 @@ function Start-InteractiveSetup {
     $voices = Get-AvailableVoices -ApiKey $ApiKey
     
     if (-not $voices) {
-        Write-Host "[WARNING] Could not fetch voices, using default (Rachel)" -ForegroundColor Yellow
-        $selectedVoice = @{
-            voice_id = "21m00Tcm4TlvDq8ikWAM"
-            name = "Rachel"
-        }
+        Write-Warning ("[WARNING] Could not fetch voices. Using default (Rachel).")
+        $ConfigRef.Value.voice.id = "21m00Tcm4TlvDq8ikWAM"
+        $ConfigRef.Value.voice.name = "Rachel"
     } else {
-        Write-Host ""
-        Write-Host "Available voices:" -ForegroundColor Green
-        Write-Host ""
-        
+        Write-Host "`nAvailable voices:" -ForegroundColor Green
         for ($i = 0; $i -lt $voices.Count; $i++) {
             $voice = $voices[$i]
             $description = if ($voice.labels.description) { " - $($voice.labels.description)" } else { "" }
             $gender = if ($voice.labels.gender) { " ($($voice.labels.gender))" } else { "" }
-            Write-Host "  $($i + 1). $($voice.name)$gender$description" -ForegroundColor White
+            Write-Host ("  {0}. {1}{2}{3}" -f ($i + 1), $voice.name, $gender, $description) -ForegroundColor White
         }
-        
         Write-Host ""
         $voiceChoice = Read-Host "Select voice number (1-$($voices.Count)) or press Enter for default (Rachel)"
         
+        $selectedVoiceEntry = $null
         if ($voiceChoice -match '^\d+$' -and [int]$voiceChoice -ge 1 -and [int]$voiceChoice -le $voices.Count) {
-            $selectedVoice = $voices[[int]$voiceChoice - 1]
+            $selectedVoiceEntry = $voices[[int]$voiceChoice - 1]
         } else {
-            $selectedVoice = $voices | Where-Object { $_.name -eq "Rachel" } | Select-Object -First 1
-            if (-not $selectedVoice) {
-                $selectedVoice = $voices[0] # Fall back to first voice
-            }
+            $selectedVoiceEntry = $voices | Where-Object { $_.name -eq "Rachel" } | Select-Object -First 1
+            if (-not $selectedVoiceEntry) { $selectedVoiceEntry = $voices[0] } # Fallback
         }
-        
-        Write-Host "[✓] Selected voice: $($selectedVoice.name)" -ForegroundColor Green
+        $ConfigRef.Value.voice.id = $selectedVoiceEntry.voice_id
+        $ConfigRef.Value.voice.name = $selectedVoiceEntry.name
+        Write-Host ("[✓] Selected voice: {0}" -f $selectedVoiceEntry.name) -ForegroundColor Green
     }
-    
-    # Step 4: Advanced Settings
-    Write-Host "`nSTEP 4: Voice Settings" -ForegroundColor Cyan
-    Write-Host "═════════════════════" -ForegroundColor Cyan
+}
+
+# Helper for interactive advanced settings part
+function Perform-InteractiveAdvancedSettings {
+    param([ref]$ConfigRef)
+
+    Write-Host "`nSTEP 2: Voice Settings" -ForegroundColor Cyan
+    Write-Host "══════════════════════" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Configure voice quality settings:" -ForegroundColor White
     Write-Host ""
     
     $useAdvanced = Read-Host "Use advanced settings? (y/N)"
     
-    $stability = 0.5
-    $similarity = 0.75
-    $style = 0.0
+    # Use current config values as defaults if they exist, otherwise use script defaults
+    $stability = if ($ConfigRef.Value.voice.stability) { $ConfigRef.Value.voice.stability } else { 0.5 }
+    $similarity = if ($ConfigRef.Value.voice.similarityBoost) { $ConfigRef.Value.voice.similarityBoost } else { 0.75 }
+    $style = if ($ConfigRef.Value.voice.style) { $ConfigRef.Value.voice.style } else { 0.0 }
     
     if ($useAdvanced -match '^y|yes$') {
         Write-Host ""
-        Write-Host "Stability (0.0-1.0): Controls voice consistency" -ForegroundColor Yellow
-        $stabilityInput = Read-Host "Enter stability (default: 0.5)"
+        Write-Host ("Stability (0.0-1.0): Controls voice consistency. Current: {0}" -f $stability) -ForegroundColor Yellow
+        $stabilityInput = Read-Host "Enter stability (default: $stability)"
         if ($stabilityInput -match '^\d*\.?\d+$' -and [float]$stabilityInput -ge 0 -and [float]$stabilityInput -le 1) {
             $stability = [float]$stabilityInput
         }
         
         Write-Host ""
-        Write-Host "Similarity Boost (0.0-1.0): How closely to match the original voice" -ForegroundColor Yellow
-        $similarityInput = Read-Host "Enter similarity boost (default: 0.75)"
+        Write-Host ("Similarity Boost (0.0-1.0): How closely to match the original voice. Current: {0}" -f $similarity) -ForegroundColor Yellow
+        $similarityInput = Read-Host "Enter similarity boost (default: $similarity)"
         if ($similarityInput -match '^\d*\.?\d+$' -and [float]$similarityInput -ge 0 -and [float]$similarityInput -le 1) {
             $similarity = [float]$similarityInput
         }
         
         Write-Host ""
-        Write-Host "Style (0.0-1.0): Amount of style to apply" -ForegroundColor Yellow
-        $styleInput = Read-Host "Enter style (default: 0.0)"
+        Write-Host ("Style (0.0-1.0): Amount of style to apply. Current: {0}" -f $style) -ForegroundColor Yellow
+        $styleInput = Read-Host "Enter style (default: $style)"
         if ($styleInput -match '^\d*\.?\d+$' -and [float]$styleInput -ge 0 -and [float]$styleInput -le 1) {
             $style = [float]$styleInput
         }
     }
-    
-    # Step 5: Create Configuration
-    Write-Host "`nSTEP 5: Saving Configuration" -ForegroundColor Cyan
+    $ConfigRef.Value.voice.stability = $stability
+    $ConfigRef.Value.voice.similarityBoost = $similarity
+    $ConfigRef.Value.voice.style = $style
+}
+
+# Helper to save configuration and test
+function Save-ConfigurationAndTest {
+    param([PSCustomObject]$Config)
+
+    Write-Host "`nSTEP 3: Saving Configuration" -ForegroundColor Cyan
     Write-Host "═══════════════════════════" -ForegroundColor Cyan
     Write-Host ""
     
-    $config = Get-DefaultConfig
-    $config.enabled = $true
-    $config.apiKey = $ApiKey
-    $config.voice.id = $selectedVoice.voice_id
-    $config.voice.name = $selectedVoice.name
-    $config.voice.stability = $stability
-    $config.voice.similarityBoost = $similarity
-    $config.voice.style = $style
+    $Config.apiKey = "loaded_from_env" # Ensure placeholder is set
     
-    if (Save-Config -Config $config) {
-        Write-Host ""
-        Write-Host "🎉 ElevenLabs AI Voice Setup Complete! 🎉" -ForegroundColor Green
-        Write-Host ""
-        Write-Host "Configuration Summary:" -ForegroundColor Yellow
-        Write-Host "• Voice: $($selectedVoice.name)" -ForegroundColor White
-        Write-Host "• Stability: $stability" -ForegroundColor White
-        Write-Host "• Similarity: $similarity" -ForegroundColor White
-        Write-Host "• Style: $style" -ForegroundColor White
-        Write-Host "• Fallback to Windows TTS: Enabled" -ForegroundColor White
+    if (Save-Config -Config $Config) {
+        Write-Host "`n🎉 ElevenLabs AI Voice Setup Complete! 🎉" -ForegroundColor Green
+        Write-Host "`nConfiguration Summary:" -ForegroundColor Yellow
+        Write-Host ("• Enabled: {0}" -f $Config.enabled) -ForegroundColor White
+        Write-Host ("• Voice: {0} (ID: {1})" -f $Config.voice.name, $Config.voice.id) -ForegroundColor White
+        Write-Host ("• Stability: {0}" -f $Config.voice.stability) -ForegroundColor White
+        Write-Host ("• Similarity: {0}" -f $Config.voice.similarityBoost) -ForegroundColor White
+        Write-Host ("• Style: {0}" -f $Config.voice.style) -ForegroundColor White
         Write-Host ""
         
-        # Test the configuration
-        Write-Host "Testing your new AI voice..." -ForegroundColor Yellow
-        Write-Host ""
-        
-        try {
-            & "$ScriptRoot\say-enhanced.ps1" -Text "Hello! ElevenLabs AI voice synthesis is now configured and ready for Talk2Windows. This voice sounds much more natural than traditional text to speech systems." -Verbose
-            Write-Host ""
-            Write-Host "[✓] Voice test completed successfully!" -ForegroundColor Green
-        } catch {
-            Write-Host "[WARNING] Voice test failed: $($_.Exception.Message)" -ForegroundColor Yellow
-            Write-Host "[INFO] You can test manually with: .\say-enhanced.ps1 -Test" -ForegroundColor Cyan
+        if ($Config.enabled) {
+            Write-Host "Testing your new AI voice..." -ForegroundColor Yellow
+            try {
+                & "$ScriptRoot\say-enhanced.ps1" -Text "Hello! ElevenLabs AI voice synthesis is now configured and ready." -Verbose
+                Write-Host "`n[✓] Voice test completed successfully!" -ForegroundColor Green
+            } catch {
+                Write-Warning ("`n[WARNING] Voice test failed: {0}" -f $_.Exception.Message)
+                Write-Host "[INFO] You can test manually with: .\say-enhanced.ps1 -Text ""Test message""" -ForegroundColor Cyan
+            }
+        } else {
+            Write-Warning "[INFO] ElevenLabs is currently disabled. Voice test skipped."
         }
-        
-        Write-Host ""
-        Write-Host "Next steps:" -ForegroundColor Yellow
-        Write-Host "• Test voices: .\say-enhanced.ps1 -ListVoices" -ForegroundColor White
-        Write-Host "• Test system: .\say-enhanced.ps1 -Test" -ForegroundColor White
-        Write-Host "• Use normally: All Talk2Windows scripts now use AI voice!" -ForegroundColor White
-        Write-Host ""
-        
+        Write-Host "`nNext steps:" -ForegroundColor Yellow
+        Write-Host "• Use WinAssistAI commands; they will use ElevenLabs if enabled." -ForegroundColor White
     } else {
-        Write-Host "[✗] Setup failed - could not save configuration" -ForegroundColor Red
+        Speak-Response "Setup failed - could not save configuration."
     }
 }
 
-# Main execution
-try {
-    if ($Help) {
-        Show-Help
-        exit 0
+# Function to set voice non-interactively
+function Set-ElevenLabsVoiceNonInteractive {
+    param(
+        [string]$NewVoiceID,
+        [string]$NewVoiceName # Optional
+    )
+    Show-Banner
+    Write-Host "Setting ElevenLabs Voice Non-Interactively..." -ForegroundColor Green
+    
+    $config = if (Test-Path $ConfigPath) {
+        Get-Content $ConfigPath -Raw | ConvertFrom-Json
+    } else {
+        Get-DefaultConfig
+    }
+
+    $apiKeyValid = Test-And-SetApiKeyStatus -ConfigRef ([ref]$config)
+    if (-not $apiKeyValid) {
+        Save-Config -Config $config # Save with enabled:false
+        Speak-Response "Cannot set voice. API key is missing or invalid."
+        exit 1
+    }
+
+    $config.voice.id = $NewVoiceID
+    if (-not [string]::IsNullOrWhiteSpace($NewVoiceName)) {
+        $config.voice.name = $NewVoiceName
+    } else {
+        # Attempt to fetch voice name if not provided
+        $voices = Get-AvailableVoices -ApiKey $Global:ApiKey
+        $foundVoice = $voices | Where-Object {$_.voice_id -eq $NewVoiceID} | Select-Object -First 1
+        if ($foundVoice) {
+            $config.voice.name = $foundVoice.name
+        } else {
+            $config.voice.name = ("ID: {0} (Name not fetched)" -f $NewVoiceID)
+            Write-Warning ("Could not fetch name for voice ID {0}. Storing ID only." -f $NewVoiceID)
+        }
     }
     
-    Start-InteractiveSetup
-    
+    $config.apiKey = "loaded_from_env"
+    if (Save-Config -Config $config) {
+        Speak-Response ("ElevenLabs voice set to {0}." -f $config.voice.name)
+    } else {
+        Speak-Response "Failed to save new voice configuration."
+    }
+}
+
+# Function to list available voices non-interactively
+function List-ElevenLabsVoicesNonInteractive {
+    Show-Banner
+    Write-Host "Fetching available ElevenLabs voices..." -ForegroundColor Green
+    $envApiKey = Get-EnvVariable "ELEVENLABS_API_KEY"
+    if ([string]::IsNullOrWhiteSpace($envApiKey)) {
+        Speak-Response "Cannot list voices. ELEVENLABS_API_KEY not found in .env file."
+        exit 1
+    }
+    $testResult = Test-ApiKey -Key $envApiKey
+    if (-not $testResult.Success) {
+        Speak-Response ("Cannot list voices. API key is invalid: {0}" -f $testResult.Error)
+        exit 1
+    }
+
+    $voices = Get-AvailableVoices -ApiKey $envApiKey
+    if ($voices) {
+        Write-Host "`nAvailable Voices:" -ForegroundColor Green
+        $voiceListText = "Available voices are: "
+        $voiceDetails = @()
+        foreach ($voice in $voices) {
+            $detail = "$($voice.name) (ID: $($voice.voice_id))"
+            $description = if ($voice.labels.description) { " - $($voice.labels.description)" } else { "" }
+            $gender = if ($voice.labels.gender) { " ($($voice.labels.gender))" } else { "" }
+            Write-Host ("  {0}{1} ID: {2}{3}" -f $voice.name, $gender, $voice.voice_id, $description) -ForegroundColor White
+            $voiceDetails += $detail
+        }
+        Speak-Response ($voiceListText + ($voiceDetails -join ", "))
+    } else {
+        Speak-Response "Could not retrieve voices from ElevenLabs."
+    }
+}
+
+# --- Speak-Response Helper (if not already defined globally, ensure it's here) ---
+# Assuming say-enhanced.ps1 is in the same PSScriptRoot for this script too.
+$sayEnhancedScriptPath = Join-Path $PSScriptRoot "say-enhanced.ps1"
+function Speak-Response { param([string]$Text) Write-Host $Text -ForegroundColor Cyan; if(Test-Path $sayEnhancedScriptPath) { & $sayEnhancedScriptPath -Text $Text } }
+
+
+# Main execution logic based on parameters
+try {
+    if ($Help) { Show-Help; exit 0 }
+
+    switch ($PSCmdlet.ParameterSetName) {
+        "SetVoice" {
+            Set-ElevenLabsVoiceNonInteractive -VoiceID $VoiceID -VoiceName $VoiceName
+        }
+        "ListVoices" {
+            List-ElevenLabsVoicesNonInteractive
+        }
+        "Interactive" {
+            Start-InteractiveSetup
+        }
+        Default { # Also catches -Interactive if it's the default set
+            Start-InteractiveSetup
+        }
+    }
 } catch {
-    Write-Host "[ERROR] Setup failed: $($_.Exception.Message)" -ForegroundColor Red
+    Speak-Response ("An error occurred in setup: {0}" -f $_.Exception.Message)
     if ($Verbose) {
-        Write-Host "[DEBUG] $($_.ScriptStackTrace)" -ForegroundColor Gray
+        Write-Host ("[DEBUG] {0}" -f $_.ScriptStackTrace) -ForegroundColor Gray
     }
     exit 1
 }
